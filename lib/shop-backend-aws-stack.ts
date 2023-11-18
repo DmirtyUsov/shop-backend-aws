@@ -7,13 +7,5 @@ import { Construct } from 'constructs';
 export class ShopBackendAwsStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-
-    const queue = new sqs.Queue(this, 'ShopBackendAwsQueue', {
-      visibilityTimeout: Duration.seconds(300)
-    });
-
-    const topic = new sns.Topic(this, 'ShopBackendAwsTopic');
-
-    topic.addSubscription(new subs.SqsSubscription(queue));
   }
 }
