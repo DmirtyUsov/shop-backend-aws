@@ -18,6 +18,12 @@ export class EndpointProducts extends Construct {
       }
     )
 
+    const getProductById = new lambda.Function(this, 'GetProductByIdHandler', {
+      runtime: lambda.Runtime.NODEJS_18_X, // execution environment
+      code: lambda.Code.fromAsset('handlers'), // code loaded from "handlers" directory
+      handler: 'get-product-by-id.handler', // file is "get-product-by-id", function is "handler"
+    });
+
     const endpointProducts = new apigw.HttpApi(
       this,
       'ProductApi',
@@ -38,8 +44,16 @@ export class EndpointProducts extends Construct {
       ),
       path: '/products',
       methods: [apigw.HttpMethod.GET]
-    }
+    })
 
-    )
+    endpointProducts.addRoutes({
+      integration: new HttpLambdaIntegration
+      (
+        'GetProductsListIntegration',
+        getProductById
+      ),
+      path: '/products/{productId}',
+      methods: [apigw.HttpMethod.GET]
+    })
   }
 }
