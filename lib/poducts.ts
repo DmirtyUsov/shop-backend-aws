@@ -24,17 +24,23 @@ export class EndpointProducts extends Construct {
       handler: 'get-product-by-id.handler', // file is "get-product-by-id", function is "handler"
     });
 
-    const endpointProducts = new apigw.HttpApi(
-      this,
-      'ProductApi',
-      {
-        corsPreflight: {
-          allowHeaders: ['*'],
-          allowMethods: [apigw.CorsHttpMethod.ANY],
-          allowOrigins: ['*']
-        }
-      }
-    )
+     const anyRequest = new lambda.Function(this, 'DefaultHandler', {
+       runtime: lambda.Runtime.NODEJS_18_X, // execution environment
+       code: lambda.Code.fromAsset('handlers'), // code loaded from "handlers" directory
+       handler: 'default.handler', // file is "default", function is "handler"
+     });
+
+    const endpointProducts = new apigw.HttpApi(this, 'ProductApi', {
+      corsPreflight: {
+        allowHeaders: ['*'],
+        allowMethods: [apigw.CorsHttpMethod.ANY],
+        allowOrigins: ['*'],
+      },
+      defaultIntegration: new HttpLambdaIntegration(
+        'DefaultIntegration',
+        anyRequest
+      ),
+    });
 
     endpointProducts.addRoutes({
       integration: new HttpLambdaIntegration
