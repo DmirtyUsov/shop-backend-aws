@@ -1,7 +1,8 @@
 import { Stack } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as apigw from 'aws-cdk-lib/aws-apigateway';
+import * as apigw from '@aws-cdk/aws-apigatewayv2-alpha';
+import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha'
 
 export class EndpointProducts extends Construct {
   constructor(parent: Stack, name: string) {
@@ -17,13 +18,28 @@ export class EndpointProducts extends Construct {
       }
     )
 
-    const endpointProducts = new apigw.LambdaRestApi(
+    const endpointProducts = new apigw.HttpApi(
       this,
-      'Endpoint',
+      'ProductApi',
       {
-        handler: getProductsList
+        corsPreflight: {
+          allowHeaders: ['*'],
+          allowMethods: [apigw.CorsHttpMethod.ANY],
+          allowOrigins: ['*']
+        }
       }
-    );
+    )
 
+    endpointProducts.addRoutes({
+      integration: new HttpLambdaIntegration
+      (
+        'GetProductsListIntegration',
+        getProductsList
+      ),
+      path: '/products',
+      methods: [apigw.HttpMethod.GET]
+    }
+
+    )
   }
 }
